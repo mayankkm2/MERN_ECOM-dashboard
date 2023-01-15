@@ -1,0 +1,53 @@
+//mongoose CRUD with postman
+const express = require('express');
+require('./config');
+const Product = require('./product');
+const app = express();
+app.use(express.json());//to convert data into json format from stream
+
+
+
+app.post('/create', async (req, res) => {//req-get d data in api frm browser,postman 
+ let data =new Product(req.body);   
+ let result = await data.save();//new documents can be added to the database
+ //console.log(req.body);
+ res.send(result);
+});
+
+app.get('/list',async (req,res) =>{//if model(wid find()) does not have schemas,it ll work
+    let data = await Product.find();//reads
+    res.send(data);
+})
+
+app.delete('/delete/:_id',async (req,res) =>{
+    console.log(req.params);//o/p- {_id: 'kjjjbb'}//or req.params.id
+    let data = await Product.deleteOne(req.params);
+    res.send(data);
+}) 
+
+app.put('/update/:_id',async (req,res) =>{
+    console.log(req.params);//o/p- {_id: 'kjjjbb'}
+    let data = await Product.updateOne(
+        req.params,
+        {
+           $set: req.body 
+        }
+    );
+    res.send(data);
+}) 
+ 
+//search API
+app.get('/search/:key',async (req,res) => {//using regex for search
+    let data = await Product.find( //for multiple search fields/$or-means it can be in multiple fields
+        {
+            "$or":[
+                { "name":{$regex: req.params.key}},
+                { "brand":{$regex: req.params.key}}
+            ]
+        }
+    );
+    res.send(data);//so it becomes a listin api
+})
+
+
+app.listen(5000);
